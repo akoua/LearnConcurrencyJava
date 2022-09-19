@@ -3,8 +3,11 @@ package culture.africa.learn.ground.java.entities;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class AccountManager {
+    private static Logger logger = Logger.getGlobal();
     private ConcurrentHashMap<Integer, Account> accounts =
             new ConcurrentHashMap<>();
     private volatile boolean shutdown = false;
@@ -44,12 +47,19 @@ public class AccountManager {
 
     public void init(){
         Runnable withdraw = () -> {
+            LOOP:
             while (!shutdown){
                 try {
-                    var task = pending.take();
+                    var task = pending.poll(5, TimeUnit.SECONDS);
+                    if (task == null) {
+                        logger.info("withdraw task is null");
+                        continue LOOP;
+                    }
                     var sender = task.sender();
                     if (sender.withdraw(task.amount(), false)){
                         forDeposit.put(task);
+                    }else {
+                        failed.put(task);
                     }
                 }catch (InterruptedException e){
                 }
@@ -61,7 +71,11 @@ public class AccountManager {
             while (!shutdown) {
                 TransferTask task;
                 try {
-                    task = forDeposit.take();
+                    task = forDeposit.poll(5, TimeUnit.SECONDS);
+                    if (null == task){
+                        logger.info("deposit task is null");
+                        continue LOOP;
+                    }
                 } catch (InterruptedException e) {
                     // Log at critical and proceed to next item
                     continue LOOP;
