@@ -1,8 +1,13 @@
 package culture.africa.learn.ground.java;
 
+import culture.africa.learn.ground.java.entities.AccountManager;
+import culture.africa.learn.ground.java.entities.TransferTask;
+
 import java.util.HashMap;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -11,32 +16,26 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
 
-        var latch = new CountDownLatch(2);
-        var map = new ConcurrentHashMap<String, String>();
-        int size = 10_000_000;
-
-        var t1 = new Thread(() -> {
-            for (int i = 0; i < size; i++) {
-                map.put("t1" + i, "0");
-            }
-            latch.countDown();
-        });
-        var t2 = new Thread(() -> {
-            for (int i = 0; i < size; i++) {
-                map.put("t2" + i, "0");
-            }
-            latch.countDown();
-        });
-
-        t1.start();
-        t2.start();
-
+        var manager = new AccountManager();
+        manager.init();
+        var acc1 = manager.createAccount(1000);
+        var acc2 = manager.createAccount(20_000);
+        var transfer = new TransferTask(acc1, acc2, 100);
+        manager.submit(transfer);
         try {
-            latch.await();
-        } catch (InterruptedException __) {
-            System.err.println("Threads interrupted");
+            Thread.sleep(1_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        logger.info("Count: "+map.size());
+        logger.info("account 1: "+acc1);
+        logger.info("account 2: "+acc2);
+        manager.shutdown();
+        manager.await();
+//        var transfer2 = new TransferTask(acc1, acc2, 200);
+//        manager.submit(transfer2);
+//        logger.info("-> account 1: "+acc1);
+//        logger.info("-> account 2: "+acc2);
+//        manager.await();
 
     }
 

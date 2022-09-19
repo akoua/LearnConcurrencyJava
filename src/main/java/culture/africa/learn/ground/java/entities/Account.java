@@ -23,7 +23,7 @@ public class Account {
 
     public void rawDeposit(int amount) {
         // Check to see amount > 0, throw if not
-        double v = balance + amount;
+        balance = balance + amount;
     }
 
     public double getRawBalance() {
@@ -119,5 +119,14 @@ public class Account {
             }
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "balance=" + balance +
+                ", atmFeePercent=" + atmFeePercent +
+                ", accountId=" + accountId +
+                '}';
     }
 }
