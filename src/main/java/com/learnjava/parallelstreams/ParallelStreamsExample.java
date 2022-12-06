@@ -18,13 +18,6 @@ public class ParallelStreamsExample {
                 .collect(Collectors.toList());
     }
 
-    /*public List<String> stringTransform_upperCase(List<String> namesList){
-        return namesList
-                .parallelStream()
-                .map(String::toLowerCase)
-                .collect(Collectors.toList());
-    }*/
-
     public List<String> stringTransform_1(List<String> namesList, boolean isParallel) {
 
         Stream<String> nameStream = namesList.stream();
